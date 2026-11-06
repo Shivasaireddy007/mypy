@@ -968,6 +968,10 @@ class TypeChecker(NodeVisitor[None], TypeCheckerSharedApi, SplittingVisitor):
                 self.msg.no_overridable_method(defn.name, defn)
             self.check_explicit_override_decorator(defn, found_method_base_classes, defn.impl)
             self.check_inplace_operator_method(defn)
+            if defn.name == "__post_init__" and dataclasses_plugin.is_processed_dataclass(
+                defn.info
+            ):
+                dataclasses_plugin.check_post_init(self, defn, defn.info)
 
     @contextmanager
     def enter_overload_impl(self, impl: OverloadPart) -> Iterator[None]:
@@ -1417,7 +1421,8 @@ class TypeChecker(NodeVisitor[None], TypeCheckerSharedApi, SplittingVisitor):
             self.check__exit__return_type(defn)
         # TODO: the following logic should move to the dataclasses plugin
         #  https://github.com/python/mypy/issues/15515
-        if name == "__post_init__":
+        if name == "__post_init__" and not defn.is_overload:
+            # overloads are checked as a whole in visit_overloaded_func_def()
             if dataclasses_plugin.is_processed_dataclass(defn.info):
                 dataclasses_plugin.check_post_init(self, defn, defn.info)
 

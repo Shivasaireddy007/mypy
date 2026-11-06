@@ -33,6 +33,7 @@ from mypy.nodes import (
     JsonDict,
     NameExpr,
     Node,
+    OverloadedFuncDef,
     PlaceholderNode,
     RefExpr,
     Statement,
@@ -1123,7 +1124,7 @@ def is_processed_dataclass(info: TypeInfo) -> bool:
     return bool(info) and "dataclass" in info.metadata
 
 
-def check_post_init(api: TypeChecker, defn: FuncItem, info: TypeInfo) -> None:
+def check_post_init(api: TypeChecker, defn: FuncItem | OverloadedFuncDef, info: TypeInfo) -> None:
     if defn.type is None:
         return
     assert isinstance(defn.type, FunctionLike)

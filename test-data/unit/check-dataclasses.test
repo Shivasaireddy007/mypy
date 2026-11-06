@@ -2550,6 +2550,52 @@ main:11: note:          def __post_init__(self: Klass, y: str) -> None
 main:11: note:      Subclass:
 main:11: note:          def __post_init__(self: Klass) -> None
 
+[case testPostInitOverloaded]
+from dataclasses import dataclass, InitVar
+from typing import overload, Union
+
+@dataclass
+class Test1:
+    value: InitVar[int]
+    @overload
+    def __post_init__(self, value: int) -> None: ...
+    @overload
+    def __post_init__(self, value: str) -> None: ...
+    def __post_init__(self, value: Union[int, str]) -> None: ...
+
+@dataclass
+class Test2:
+    value: InitVar[int]
+    @overload
+    def __post_init__(self, value: str) -> None: ...
+    @overload
+    def __post_init__(self, value: int) -> None: ...
+    def __post_init__(self, value: Union[int, str]) -> None: ...
+[builtins fixtures/dataclasses.pyi]
+
+[case testPostInitOverloadedNoMatchingItem]
+from dataclasses import dataclass, InitVar
+from typing import overload, Union
+
+@dataclass
+class Test:
+    value: InitVar[int]
+    @overload
+    def __post_init__(self, value: str) -> None: ...
+    @overload
+    def __post_init__(self, value: bytes) -> None: ...
+    def __post_init__(self, value: Union[str, bytes]) -> None: ...
+[builtins fixtures/dataclasses.pyi]
+[out]
+main:7: error: Signature of "__post_init__" incompatible with supertype "dataclass"
+main:7: note:      Superclass:
+main:7: note:          def __post_init__(self: Test, value: int) -> None
+main:7: note:      Subclass:
+main:7: note:          @overload
+main:7: note:          def __post_init__(self: Test, value: str) -> None
+main:7: note:          @overload
+main:7: note:          def __post_init__(self: Test, value: bytes) -> None
+
 [case testPostInitIsNotAFunction]
 from dataclasses import dataclass, InitVar
 
